@@ -59,3 +59,11 @@ Comments are publicly readable. Users must sign in to post. The site does not ye
 The date in `config.js` is editable. Verify the release date against Rockstar's current announcement before relying on it.
 
 PixelNest is a provisional name, not trademark clearance. This fan community is not affiliated with Rockstar Games or Take-Two Interactive.
+
+
+## Version 2.1 community + video expansion
+- Community now has 10 discussion rooms, category filtering, meme reactions, friend requests and an incoming request inbox.
+- Video Vault has 10 topic lanes with YouTube search links, alongside the official trailer embeds.
+- Publish the updated `firestore.rules` in Firebase Console → Firestore Database → Rules. Keep your existing `config.js`; do not replace it.
+- Friend requests are stored in the `friendRequests` collection. Users must sign in to post, react, send requests or accept requests.
+- Meme reactions are emoji/text badges attached to posts; users can also include meme references in their post text.
