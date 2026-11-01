@@ -1,0 +1,14 @@
+// Rename this file to config.js ONLY if you are setting up a fresh copy.
+// If your current website already works, KEEP your existing config.js and do not replace it.
+window.PIXELNEST_CONFIG = {
+  firebase: {
+    apiKey: "YOUR_FIREBASE_WEB_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  },
+  adminUIDs: ["YOUR_FIREBASE_AUTH_UID"],
+  gtaVIDate: "2026-11-19T00:00:00"
+};

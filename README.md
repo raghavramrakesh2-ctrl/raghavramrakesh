@@ -1,131 +1,61 @@
-# PixelNest / COREBYES — upgraded gaming magazine
+# PixelNest COREBYES 2.0
 
-A colourful, dark-black + electric-blue gaming site built with HTML, CSS and vanilla JavaScript. It is lightweight and suitable for GitHub Pages. No computer at home needs to run as a server.
+A lightweight static gaming portal for GitHub Pages. No home PC server is needed.
 
-## What changed
+## What's new
+- Guest browsing: visitors can enter without signing in.
+- Separate pages: Home, News, GTA V, Videos, Mini Games and Community.
+- News search and category filters, plus Firebase admin article publishing.
+- Video vault with GTA V and GTA VI official trailer embeds, plus YouTube discovery links for funny gameplay and Unity/game-dev tips.
+- Three playable browser mini games: reaction test, memory match and click rush.
+- Firebase login remains available. Registered accounts can comment and rate; guests can browse.
+- Admin publishing remains protected by Firestore rules.
 
-- Full-screen animated COREBYES intro, then a login / create-account gate.
-- Firebase Authentication (email/password and optional Google sign-in).
-- Cloud-hosted comments, game ratings and editor-published stories using Firebase Cloud Firestore.
-- Admin dashboard for publishing stories.
-- GTA V feature zone and starter articles.
-- GTA VI release countdown (editable date).
-- YouTube trailer gallery.
-- Interactive article search and category filters.
-- Responsive layout for mobile and desktop.
+## IMPORTANT: preserve your existing Firebase config
+If you are updating the PixelNest website you already configured, **do not replace or delete your existing `config.js`**. This package includes `config.js.example` only so your real Firebase API config and admin UID are not overwritten. Keep your current `config.js` in the GitHub repository.
 
-**Important:** the intro is an animated HTML/CSS sequence that looks like a short video intro. It is not a separate MP4 video file. It says COREBYES and transitions to the login screen.
+For a fresh setup, copy `config.js.example` to `config.js`, fill it with your Firebase web app config and admin UID.
 
-## No PC server required — use Firebase's hosted cloud
+## Update your existing GitHub Pages site
+1. Extract this ZIP on your PC.
+2. Open your existing GitHub repository.
+3. Upload the new/updated files from this folder to the repository root (not inside an extra nested folder).
+4. **Do not upload `config.js.example` as `config.js`; do not overwrite your existing `config.js`.**
+5. Keep `config.js`, then commit changes.
+6. GitHub Pages redeploys automatically. Your website URL and Firebase project stay the same.
 
-GitHub Pages only hosts static files; it cannot securely process logins or save shared comments by itself. Firebase provides the hosted authentication and database. Your PC is only used to edit and upload files; visitors connect directly to Firebase.
+Files to upload: `index.html`, `news.html`, `gtav.html`, `videos.html`, `minigames.html`, `community.html`, `styles.css`, `site.js`, `home.js`, `news.js`, `community.js`, `minigames.js`, `articles.js`, `firestore.rules`, and `README.md`. You may also upload `config.js.example` as a reference.
 
-Firebase has a no-cost Spark plan with usage limits. Check the current limits and terms before launch: https://firebase.google.com/pricing
+## Firebase setup/update
+Your Firebase project, Authentication users, Firestore database and GitHub Pages setup do not need to be recreated.
 
-## One-time Firebase setup
+### 1. Authentication
+Keep Email/Password enabled if you use account login. Google sign-in is optional.
 
-1. Open https://console.firebase.google.com/ and create a project (for example `pixelnest-community`).
-2. In Project settings → General, add a **Web app**. Register the app and copy the Firebase web configuration.
-3. In **Authentication → Sign-in method**, enable **Email/Password**. Optionally enable **Google** too. For Google sign-in, add your published domain under Authorized domains.
-4. In **Firestore Database**, create a database. Choose a region close to most of your audience.
-5. Open `config.js` and replace the placeholder values in `firebase` with the web app configuration.
-6. Publish the website to GitHub Pages, then add your GitHub Pages domain to Firebase Authentication → Settings → Authorized domains.
-7. Open the published site and create your own account.
-8. In Firebase Authentication → Users, copy your account's **UID**. Put it in `adminUIDs` in `config.js`:
-   ```js
-   adminUIDs: ["YOUR_REAL_FIREBASE_AUTH_UID"]
-   ```
-9. Set Firestore security rules (next section). Publish the rules.
-10. Upload the updated `config.js` to GitHub. Sign out and sign back in. The ADMIN button should appear for your account.
+### 2. Firestore rules — IMPORTANT
+This version lets anyone read public articles, comments and ratings, while only signed-in accounts can write comments/ratings and only your admin UID can publish articles.
+1. Open Firebase Console → Firestore Database → Rules.
+2. Replace `PUT_YOUR_ADMIN_UID_HERE` in `firestore.rules` with your actual Firebase Authentication UID.
+3. Paste the complete contents of `firestore.rules` into the Rules editor and Publish.
 
-### Firestore security rules
+Do not use open write rules. Public reads are intentional so guests can browse stories and community posts.
 
-Replace `PUT_YOUR_ADMIN_UID_HERE` with your actual Firebase Authentication UID, then paste these rules in Firestore → Rules and Publish.
+### 3. Admin
+Keep your existing admin UID in your existing `config.js`. Do not change it if the ADMIN button already works.
 
-```text
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function signedIn() {
-      return request.auth != null;
-    }
-    function isAdmin() {
-      return signedIn() && request.auth.uid == 'PUT_YOUR_ADMIN_UID_HERE';
-    }
+## Add stories
+Open `articles.js` and add an object to the `articles` array. Each story has `id`, `category`, `date`, `readTime`, `title`, `excerpt`, and `body`. Or sign in using your admin account, open ADMIN, and publish from the dashboard. Cloud articles appear on News page.
 
-    match /comments/{commentId} {
-      allow read: if signedIn();
-      allow create: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 500;
-      allow update, delete: if isAdmin();
-    }
+## Videos
+The Videos page embeds GTA V's official trailer (YouTube ID `QkkoHAzjnUs`) and GTA VI Trailer 1 (YouTube ID `QdBZY2fkU-0`). Funny GTA V gameplay and game development tips are YouTube search links so visitors can choose creators/videos. Replace/add links only to videos you have permission to share.
 
-    match /gameRatings/{ratingId} {
-      allow read: if signedIn();
-      allow create, update: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.game == 'gta-v'
-        && request.resource.data.rating is int
-        && request.resource.data.rating >= 1
-        && request.resource.data.rating <= 5;
-      allow delete: if isAdmin();
-    }
+## Mini games
+All three mini games run locally in the visitor's browser. They do not need Firebase or downloads.
 
-    match /articles/{articleId} {
-      allow read: if signedIn();
-      allow create: if isAdmin()
-        && request.resource.data.title is string
-        && request.resource.data.title.size() <= 100;
-      allow update, delete: if isAdmin();
-    }
-  }
-}
-```
+## Privacy and moderation
+Comments are publicly readable. Users must sign in to post. The site does not yet include report/block or automated moderation. Review comments regularly and publish a privacy policy before collecting real user information.
 
-**Security note:** `adminUIDs` in `config.js` controls what the browser displays, but it is not the security boundary. The Firestore rules above enforce admin publishing on Firebase's servers. Never put a Firebase service-account key or private secret in this website.
+## Countdown
+The date in `config.js` is editable. Verify the release date against Rockstar's current announcement before relying on it.
 
-## Edit the countdown
-
-Open `config.js` and change:
-```js
-gtaVIDate: "2026-11-19T00:00:00"
-```
-Use the confirmed release date you want to count down to. The date is a configurable placeholder and should be checked against the publisher's latest announcement.
-
-## Add / edit homepage stories
-
-Open `articles.js`. Copy one article object and change its `id`, `category`, `date`, `readTime`, `title`, `excerpt`, and `body`. Supported categories are `News`, `Guides`, `Opinion`, and `GTA V`.
-
-For a new story published through the ADMIN dashboard, sign in with your admin account, click ADMIN, fill in the form and publish. Cloud-published stories are stored in Firestore and appear for signed-in visitors.
-
-## Add videos
-
-The GTA V trailer is embedded from YouTube. To change it, replace the video ID in the iframe URL in `index.html`. A YouTube URL such as `https://www.youtube.com/watch?v=VIDEO_ID` has the ID after `v=`. Use videos you have permission to embed and credit the creator.
-
-## Publish free with GitHub Pages
-
-1. Create/sign in to GitHub: https://github.com/
-2. Create a public repository named `YOUR-USERNAME.github.io` (replace with your username).
-3. Upload the project files and `assets` folder to the repository root (upload the files, not the ZIP).
-4. Go to repository **Settings → Pages**.
-5. Under Build and deployment, choose **Deploy from a branch**, select `main` and `/(root)`, then Save.
-6. Your site will be at `https://YOUR-USERNAME.github.io/` after deployment.
-
-Then add that domain to Firebase Authentication's Authorized domains.
-
-## Google Search
-
-After the site is live, add it to Google Search Console: https://search.google.com/search-console/ . Verify ownership and request indexing. Indexing is not instant and does not guarantee search ranking.
-
-## Before public launch
-
-- Set up Firebase and test account creation, login, comments, ratings and admin publishing.
-- Keep Firestore rules secure. Do not use open read/write rules in production.
-- Add a privacy policy explaining account data and community comments.
-- Add a moderation process. The current starter has no report/block or automated moderation tools; as site owner, review and remove inappropriate content.
-- Do not publish private details. Use a dedicated admin email.
-- PixelNest is a provisional brand name, not trademark clearance. This fan site is not affiliated with Rockstar Games or Take-Two Interactive.
-- Use only images, logos and videos you own, have permission to use, or are licensed to publish.
+PixelNest is a provisional name, not trademark clearance. This fan community is not affiliated with Rockstar Games or Take-Two Interactive.
